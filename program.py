@@ -151,6 +151,40 @@ while running:
                 coin["active"] = True
 
         player_rect = pygame.Rect(player_x, player_y, 50, 50)
+        for obstacle in obstacles:
+            obstacle_rect = pygame.Rect(obstacle["x"], obstacle["y"], 50, 50)
+            if player_rect.colliderect(obstacle_rect):
+                collision_sound.play()
+                player_health -= 1
+                explosions.append({"x": player_x, "y": player_y, "frame": 0})
+                if player_health <= 0:
+                    game_state = GAME_OVER
+                obstacle["x"] = SCREEN_WIDTH
 
+        powerup_rect = pygame.Rect(powerup["x"], powerup["y"], 30, 30)
+        if player_rect.colliderect(powerup_rect) and powerup["active"]:
+            powerup_sound.play()
+            powerup["active"] = False
+            player_speed += 2 
+
+        for coin in coins:
+            coin_rect = pygame.Rect(coin["x"], coin["y"], 20, 20)
+            if player_rect.colliderect(coin_rect) and coin["active"]:
+                coin_sound.play()
+                coin["active"] = False
+                score += 10
+                for _ in range(10):
+                    particles.append({
+                        "x": coin["x"],
+                        "y": coin["y"],
+                        "vx": random.uniform(-2, 2),
+                        "vy": random.uniform(-2, 2),
+                        "life": 30
+                    })
+
+        bg_x -= 1
+        if bg_x <= -SCREEN_WIDTH:
+            bg_x = 0
+        
 pygame.quit()
 sys.exit()
