@@ -185,6 +185,91 @@ while running:
         bg_x -= 1
         if bg_x <= -SCREEN_WIDTH:
             bg_x = 0
-        
+        screen.blit(background_image, (bg_x, 0))
+        screen.blit(background_image, (bg_x + SCREEN_WIDTH, 0))
+
+        screen.blit(player_image, (player_x, player_y))
+        for obstacle in obstacles:
+            screen.blit(obstacle_image, (obstacle["x"], obstacle["y"]))
+        if powerup["active"]:
+            screen.blit(powerup_image, (powerup["x"], powerup["y"]))
+        for coin in coins:
+            if coin["active"]:
+                screen.blit(coin_image, (coin["x"], coin["y"]))
+
+        for explosion in explosions:
+            screen.blit(explosion_image, (explosion["x"], explosion["y"]))
+            explosion["frame"] += 1
+            if explosion["frame"] > 10: 
+                explosions.remove(explosion)
+
+        for particle in particles:
+            pygame.draw.circle(screen, WHITE, (int(particle["x"]), int(particle["y"])), 2)
+            particle["x"] += particle["vx"]
+            particle["y"] += particle["vy"]
+            particle["life"] -= 1
+            if particle["life"] <= 0:
+                particles.remove(particle)
+
+        score_text = font.render(f"Score: {score}", True, WHITE)
+        screen.blit(score_text, (10, 10))
+        health_text = font.render(f"Health: {player_health}", True, RED)
+        screen.blit(health_text, (10, 50))
+    elif game_state == GAME_OVER:
+        screen.fill(BLACK) 
+
+        if game_over_image:
+            game_over_rect = game_over_image.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            screen.blit(game_over_image, game_over_rect)
+
+        game_over_text = font.render(f"Score: {score}", True, WHITE)
+        screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 70, SCREEN_HEIGHT // 2 + 170))
+        restart_text = small_font.render("Press R to Restart", True, WHITE)
+        screen.blit(restart_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 150))
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_r]:
+            player_x = 100
+            player_y = SCREEN_HEIGHT // 2
+            player_speed = 5
+            player_health = 3
+            obstacles = []
+            for _ in range(3):
+                obstacles.append({
+                    "x": SCREEN_WIDTH,
+                    "y": random.randint(0, SCREEN_HEIGHT - 50),
+                    "speed": base_obstacle_speed
+                })
+            powerup["x"] = SCREEN_WIDTH
+            powerup["y"] = random.randint(0, SCREEN_HEIGHT - 30)
+            powerup["active"] = False
+            coins = []
+            for _ in range(5):
+                coins.append({
+                    "x": random.randint(SCREEN_WIDTH, SCREEN_WIDTH * 2),
+                    "y": random.randint(0, SCREEN_HEIGHT - 20),
+                    "speed": base_coin_speed,
+                    "active": True
+                })
+            score = 0
+            base_obstacle_speed = 5
+            base_coin_speed = 5 
+            explosions.clear() 
+            particles.clear() 
+            game_state = PLAYING
+    elif game_state == PAUSED:
+        screen.fill(BLACK)
+        pause_text = font.render("Paused - Press P to Resume", True, WHITE)
+        screen.blit(pause_text, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2))
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_p]:
+            game_state = PLAYINGpygame.quit()
+
+
+    pygame.display.flip()
+
+    clock.tick(60)
+
+
 pygame.quit()
 sys.exit()
